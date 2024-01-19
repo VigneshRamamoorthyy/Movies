@@ -28,7 +28,13 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer()
 
-const convertSnakeCaseToCamelCaseForAPI1and7 = dbObject => {
+const convertSnakeCaseToCamelCaseForAPI1 = dbObject => {
+  return {
+    movieName: dbObject.movie_name,
+  }
+}
+
+const convertSnakeCaseToCamelCaseForAPI7 = dbObject => {
   return {
     movieName: dbObject.movie_name,
   }
@@ -57,14 +63,12 @@ app.get('/movies/', async (request, response) => {
      movie_name
      FROM 
      movie
-     
+     ORDER BY movie_id;
   `
   const moviesArray = await db.all(getMovieQuery)
-  console.log(moviesArray)
+  // console.log(moviesArray)
   response.send(
-    moviesArray.map(eachMovie =>
-      convertSnakeCaseToCamelCaseForAPI1and7(eachMovie),
-    ),
+    moviesArray.map(eachMovie => convertSnakeCaseToCamelCaseForAPI1(eachMovie)),
   )
 })
 
@@ -77,7 +81,7 @@ app.post('/movies/', async (request, response) => {
     VALUES
     ('${directorId}', 
      '${movieName}', 
-     '${leadActor}')
+     '${leadActor}');
   `
   await db.run(addMovieQuery)
   response.send('Movie Successfully Added')
@@ -112,6 +116,8 @@ app.put('/movies/:movieId/', async (request, response) => {
    director_id = '${directorId}',
    movie_name = '${movieName}',
    lead_actor = '${leadActor}'
+   WHERE
+   movie_id = '${movieId}';
   `
   await db.get(updateMovieQuery)
 
@@ -166,10 +172,9 @@ app.get('/directors/:directorId/movies/', async (request, response) => {
   `
   const moviesArray = await db.all(getMovieQuery)
   response.send(
-    moviesArray.map(eachMovie =>
-      convertSnakeCaseToCamelCaseForAPI1and7(eachMovie),
-    ),
+    moviesArray.map(eachMovie => convertSnakeCaseToCamelCaseForAPI7(eachMovie)),
   )
 })
 
 module.exports = app
+
